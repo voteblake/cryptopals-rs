@@ -1,0 +1,12 @@
+[package]
+name = "cryptopals"
+version = "0.1.0"
+authors = ["Blake Johnson <johnsonblake1@gmail.com>"]
+
+[lib]
+name = "cryptopals"
+test = true
+crate_type = ["rlib"]
+
+[dependencies]
+base64 = "0.7.0"
