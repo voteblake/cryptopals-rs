@@ -11,3 +11,8 @@ fn solve_challenge_2() {
     assert_eq!("746865206b696420646f6e277420706c6179",
                cryptopals::xor_hex("1c0111001f010100061a024b53535009181c", "686974207468652062756c6c277320657965"));
 }
+
+#[test]
+fn solve_challenge_3() {
+    println!("{}", cryptopals::decrypt_single_char_xor("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736", None))
+}
