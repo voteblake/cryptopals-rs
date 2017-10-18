@@ -50,6 +50,10 @@ pub fn xor_hex(input: &str, key: &str) -> String {
 
 pub fn decrypt_single_char_xor(input: &str, corpus: Option<&HashMap<char, f64>>) -> Option<String> {
     let candidates = build_candidate_list(input);
+    if candidates.len() == 0 {
+        return None;
+    }
+
     match corpus {
         Some(x) => return best_candidate_against_corpus(candidates, x),
         None => {
