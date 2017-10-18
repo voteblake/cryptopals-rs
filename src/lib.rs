@@ -14,9 +14,12 @@ pub fn hex_to_base64(input: &str) -> String {
 
 fn hex_to_bytes(input: &str) -> Vec<u8> {
     let chars: Vec<char> = input.chars().collect();
-    chars.chunks(2).map(|chunk| {
-        ((chunk[0].to_digit(16).unwrap() << 4) | chunk[1].to_digit(16).unwrap()) as u8
-    }).collect()
+    chars
+        .chunks(2)
+        .map(|chunk| {
+            ((chunk[0].to_digit(16).unwrap() << 4) | chunk[1].to_digit(16).unwrap()) as u8
+        })
+        .collect()
 }
 
 fn bytes_to_hex(input: Vec<u8>) -> String {
@@ -25,11 +28,13 @@ fn bytes_to_hex(input: Vec<u8>) -> String {
         output.push(char::from_digit(u32::from(chunk) >> 4, 16).unwrap());
         output.push(char::from_digit(u32::from(chunk) & 15, 16).unwrap());
     }
-    return output
+    return output;
 }
 
 pub fn xor_hex(input: &str, key: &str) -> String {
-    if input.len() != key.len() { panic!("Buffers are of different lengths, cannot fixed xor")};
+    if input.len() != key.len() {
+        panic!("Buffers are of different lengths, cannot fixed xor")
+    };
 
     let mut output: Vec<u8> = Vec::with_capacity(input.len());
     let input_bytes = hex_to_bytes(input);
@@ -40,35 +45,40 @@ pub fn xor_hex(input: &str, key: &str) -> String {
         output.push(input_byte ^ key_bytes.next().unwrap());
     }
 
-    return bytes_to_hex(output)
+    return bytes_to_hex(output);
 }
 
-pub fn decrypt_single_char_xor (input: &str, corpus: Option<&HashMap<char, f64>>) -> String {
+pub fn decrypt_single_char_xor(input: &str, corpus: Option<&HashMap<char, f64>>) -> String {
     let candidates = build_candidate_list(input);
     match corpus {
         Some(x) => return best_candidate_against_corpus(candidates, x),
         None => {
             let local_corpus = build_corpus_from_file("_test_data/205-0.txt");
-            return best_candidate_against_corpus(candidates, &local_corpus)
-        },
+            return best_candidate_against_corpus(candidates, &local_corpus);
+        }
     };
 }
 
-fn build_candidate_list (input: &str) -> Vec<Box<str>> {
-    let mut results : Vec<Box<str>> = Vec::with_capacity(256);
+fn build_candidate_list(input: &str) -> Vec<Box<str>> {
+    let mut results: Vec<Box<str>> = Vec::with_capacity(256);
     for key in 0u8..255u8 {
-        let output: Vec<u8> = hex_to_bytes(input).into_iter().map(|byte| {
-            byte ^ key
-        }).collect();
+        let output: Vec<u8> = hex_to_bytes(input)
+            .into_iter()
+            .map(|byte| byte ^ key)
+            .collect();
 
-        results.push(String::from_utf8(output).unwrap_or_default().into_boxed_str());
+        results.push(
+            String::from_utf8(output)
+                .unwrap_or_default()
+                .into_boxed_str(),
+        );
     }
 
-    return results
+    return results;
 }
 
-fn build_corpus (input: &str) -> HashMap<char, f64> {
-    let mut output : HashMap<char, f64> = HashMap::new();
+fn build_corpus(input: &str) -> HashMap<char, f64> {
+    let mut output: HashMap<char, f64> = HashMap::new();
     let mut denominator = 0f64;
 
     for character in input.chars() {
@@ -79,7 +89,7 @@ fn build_corpus (input: &str) -> HashMap<char, f64> {
     for value in output.values_mut() {
         *value = *value / denominator
     }
-    return output
+    return output;
 }
 
 fn best_candidate_against_corpus(candidates: Vec<Box<str>>, corpus: &HashMap<char, f64>) -> String {
@@ -88,7 +98,7 @@ fn best_candidate_against_corpus(candidates: Vec<Box<str>>, corpus: &HashMap<cha
 
     for i in 0..candidates.len() {
         let mut score = 0f64;
-        candidates[i].chars().for_each(|candidate_char|{
+        candidates[i].chars().for_each(|candidate_char| {
             score += match corpus.get(&candidate_char) {
                 Some(x) => *x,
                 None => 0f64,
@@ -104,22 +114,30 @@ fn best_candidate_against_corpus(candidates: Vec<Box<str>>, corpus: &HashMap<cha
     return candidates[best_candidate].to_string();
 }
 
-fn build_corpus_from_file (input: &str) -> HashMap<char, f64> {
+fn build_corpus_from_file(input: &str) -> HashMap<char, f64> {
     let mut corpus_buff = String::new();
-    File::open(input).unwrap().read_to_string(&mut corpus_buff).unwrap();
+    File::open(input)
+        .unwrap()
+        .read_to_string(&mut corpus_buff)
+        .unwrap();
     build_corpus(&corpus_buff)
 }
 
 pub fn bruteforce_single_char_xor(file_path: &str) -> String {
 
     let mut file = String::new();
-    File::open(file_path).unwrap().read_to_string(&mut file).unwrap();
+    File::open(file_path)
+        .unwrap()
+        .read_to_string(&mut file)
+        .unwrap();
 
     let corpus = build_corpus_from_file("_test_data/205-0.txt");
     let mut candidates: Vec<Box<str>> = Vec::with_capacity(file.len());
 
     for line in file.lines() {
-        candidates.push(decrypt_single_char_xor(line, Some(&corpus)).into_boxed_str());
+        candidates.push(
+            decrypt_single_char_xor(line, Some(&corpus)).into_boxed_str(),
+        );
     }
-    return best_candidate_against_corpus(candidates, &corpus)
+    return best_candidate_against_corpus(candidates, &corpus);
 }
