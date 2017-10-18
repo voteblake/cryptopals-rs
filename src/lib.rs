@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
+
 pub fn hex_to_base64(input: &str) -> String {
     let bytes = hex_to_bytes(input);
     return base64::encode(bytes.as_slice());
@@ -42,19 +43,15 @@ pub fn xor_hex(input: &str, key: &str) -> String {
     return bytes_to_hex(output)
 }
 
-pub fn decrypt_single_char_xor (input: &str, corpus: Option<HashMap<char, f64>>) -> String {
+pub fn decrypt_single_char_xor (input: &str, corpus: Option<&HashMap<char, f64>>) -> String {
     let candidates = build_candidate_list(input);
-    let corpus = match corpus {
-        Some(x) => x,
+    match corpus {
+        Some(x) => return best_candidate_against_corpus(candidates, x),
         None => {
-            let mut corpus_buff = String::new();
-            File::open("_test_data/205-0.txt").unwrap().read_to_string(&mut corpus_buff);
-            build_corpus(&corpus_buff)
+            let local_corpus = build_corpus_from_file("_test_data/205-0.txt");
+            return best_candidate_against_corpus(candidates, &local_corpus)
         },
     };
-
-    return best_candidate_against_corpus(candidates, corpus)
-
 }
 
 fn build_candidate_list (input: &str) -> Vec<Box<str>> {
@@ -66,6 +63,7 @@ fn build_candidate_list (input: &str) -> Vec<Box<str>> {
 
         results.push(String::from_utf8(output).unwrap_or_default().into_boxed_str());
     }
+
     return results
 }
 
@@ -84,7 +82,7 @@ fn build_corpus (input: &str) -> HashMap<char, f64> {
     return output
 }
 
-fn best_candidate_against_corpus(candidates: Vec<Box<str>>, corpus: HashMap<char, f64>) -> String {
+fn best_candidate_against_corpus(candidates: Vec<Box<str>>, corpus: &HashMap<char, f64>) -> String {
     let mut best_score = 0f64;
     let mut best_candidate = 0usize;
 
@@ -104,4 +102,24 @@ fn best_candidate_against_corpus(candidates: Vec<Box<str>>, corpus: HashMap<char
     }
 
     return candidates[best_candidate].to_string();
+}
+
+fn build_corpus_from_file (input: &str) -> HashMap<char, f64> {
+    let mut corpus_buff = String::new();
+    File::open(input).unwrap().read_to_string(&mut corpus_buff).unwrap();
+    build_corpus(&corpus_buff)
+}
+
+pub fn bruteforce_single_char_xor(file_path: &str) -> String {
+
+    let mut file = String::new();
+    File::open(file_path).unwrap().read_to_string(&mut file).unwrap();
+
+    let corpus = build_corpus_from_file("_test_data/205-0.txt");
+    let mut candidates: Vec<Box<str>> = Vec::with_capacity(file.len());
+
+    for line in file.lines() {
+        candidates.push(decrypt_single_char_xor(line, Some(&corpus)).into_boxed_str());
+    }
+    return best_candidate_against_corpus(candidates, &corpus)
 }

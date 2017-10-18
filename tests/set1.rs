@@ -16,3 +16,8 @@ fn solve_challenge_2() {
 fn solve_challenge_3() {
     println!("{}", cryptopals::decrypt_single_char_xor("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736", None))
 }
+
+#[test]
+fn solve_challenge_4() {
+    println!("{}",cryptopals::bruteforce_single_char_xor("_test_data/4.txt"))
+}
