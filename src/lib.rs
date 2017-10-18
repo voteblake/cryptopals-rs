@@ -48,7 +48,7 @@ pub fn xor_hex(input: &str, key: &str) -> String {
     return bytes_to_hex(output);
 }
 
-pub fn decrypt_single_char_xor(input: &str, corpus: Option<&HashMap<char, f64>>) -> String {
+pub fn decrypt_single_char_xor(input: &str, corpus: Option<&HashMap<char, f64>>) -> Option<String> {
     let candidates = build_candidate_list(input);
     match corpus {
         Some(x) => return best_candidate_against_corpus(candidates, x),
@@ -67,11 +67,11 @@ fn build_candidate_list(input: &str) -> Vec<Box<str>> {
             .map(|byte| byte ^ key)
             .collect();
 
-        results.push(
-            String::from_utf8(output)
-                .unwrap_or_default()
-                .into_boxed_str(),
-        );
+
+        match String::from_utf8(output) {
+            Ok(x) => results.push(x.into_boxed_str()),
+            Err(_) => continue,
+        }
     }
 
     return results;
@@ -92,7 +92,10 @@ fn build_corpus(input: &str) -> HashMap<char, f64> {
     return output;
 }
 
-fn best_candidate_against_corpus(candidates: Vec<Box<str>>, corpus: &HashMap<char, f64>) -> String {
+fn best_candidate_against_corpus(candidates: Vec<Box<str>>, corpus: &HashMap<char, f64>) -> Option<String> {
+    if candidates.len() == 0 {
+        return None;
+    }
     let mut best_score = 0f64;
     let mut best_candidate = 0usize;
 
@@ -111,7 +114,7 @@ fn best_candidate_against_corpus(candidates: Vec<Box<str>>, corpus: &HashMap<cha
         }
     }
 
-    return candidates[best_candidate].to_string();
+    return Some(candidates[best_candidate].to_string());
 }
 
 fn build_corpus_from_file(input: &str) -> HashMap<char, f64> {
@@ -137,9 +140,11 @@ pub fn bruteforce_single_char_xor(file_path: &str) -> String {
     let mut candidates: Vec<Box<str>> = Vec::with_capacity(file_iter.size_hint().1.unwrap_or_default());
 
     for line in file_iter {
-        candidates.push(
-            decrypt_single_char_xor(line, Some(&corpus)).into_boxed_str(),
-        );
+        match decrypt_single_char_xor(line, Some(&corpus)) {
+            Some(x) => candidates.push(x.into_boxed_str()),
+            None => continue,
+        }
+
     }
-    return best_candidate_against_corpus(candidates, &corpus);
+    return best_candidate_against_corpus(candidates, &corpus).unwrap_or_default();
 }
