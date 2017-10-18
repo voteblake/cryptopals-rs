@@ -38,11 +38,11 @@ pub fn xor_hex(input: &str, key: &str) -> String {
 
     let mut output: Vec<u8> = Vec::with_capacity(input.len());
     let input_bytes = hex_to_bytes(input);
-    let mut key_bytes = hex_to_bytes(key).into_iter();
+    let key_bytes = hex_to_bytes(key);
 
 
-    for input_byte in input_bytes {
-        output.push(input_byte ^ key_bytes.next().unwrap());
+    for i in 0..input_bytes.len() {
+        output.push(input_bytes[i] ^ key_bytes[i]);
     }
 
     return bytes_to_hex(output);
