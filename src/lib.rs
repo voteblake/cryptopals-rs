@@ -131,10 +131,12 @@ pub fn bruteforce_single_char_xor(file_path: &str) -> String {
         .read_to_string(&mut file)
         .unwrap();
 
-    let corpus = build_corpus_from_file("_test_data/205-0.txt");
-    let mut candidates: Vec<Box<str>> = Vec::with_capacity(file.len());
+    let file_iter = file.lines();
 
-    for line in file.lines() {
+    let corpus = build_corpus_from_file("_test_data/205-0.txt");
+    let mut candidates: Vec<Box<str>> = Vec::with_capacity(file_iter.size_hint().1.unwrap_or_default());
+
+    for line in file_iter {
         candidates.push(
             decrypt_single_char_xor(line, Some(&corpus)).into_boxed_str(),
         );
