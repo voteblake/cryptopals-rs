@@ -152,3 +152,23 @@ pub fn bruteforce_single_char_xor(file_path: &str) -> String {
     }
     best_candidate_against_corpus(&candidates, &corpus).unwrap_or_default()
 }
+
+pub fn encrypt_repeating_key_xor(pt: &str, key: &str) -> String {
+    let mut buffer: Vec<u8> = Vec::new();
+    let key_bytes: Vec<u8> = key.bytes().collect();
+    for (i, byte) in pt.bytes().enumerate() {
+        buffer.push(byte ^ key_bytes[i % 3])
+    }
+
+    bytes_to_hex(buffer)
+}
+
+pub fn decrypt_repeating_key_xor(pt: &str, key: &str) -> String {
+    let mut buffer: Vec<u8> = Vec::new();
+    let key_bytes: Vec<u8> = key.bytes().collect();
+    for (i, byte) in hex_to_bytes(pt).iter().enumerate() {
+        buffer.push(byte ^ key_bytes[i % 3])
+    }
+
+    String::from_utf8(buffer).unwrap()
+}
