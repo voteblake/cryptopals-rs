@@ -9,7 +9,7 @@ use std::io::Read;
 
 pub fn hex_to_base64(input: &str) -> String {
     let bytes = hex_to_bytes(input);
-    return base64::encode(bytes.as_slice());
+    base64::encode(bytes.as_slice())
 }
 
 fn hex_to_bytes(input: &str) -> Vec<u8> {
@@ -28,7 +28,7 @@ fn bytes_to_hex(input: Vec<u8>) -> String {
         output.push(char::from_digit(u32::from(chunk) >> 4, 16).unwrap());
         output.push(char::from_digit(u32::from(chunk) & 15, 16).unwrap());
     }
-    return output;
+    output
 }
 
 pub fn xor_hex(input: &str, key: &str) -> String {
@@ -45,22 +45,22 @@ pub fn xor_hex(input: &str, key: &str) -> String {
         output.push(input_bytes[i] ^ key_bytes[i]);
     }
 
-    return bytes_to_hex(output);
+    bytes_to_hex(output)
 }
 
 pub fn decrypt_single_char_xor(input: &str, corpus: Option<&HashMap<char, f64>>) -> Option<String> {
     let candidates = build_candidate_list(input);
-    if candidates.len() == 0 {
+    if candidates.is_empty() {
         return None;
     }
 
     match corpus {
-        Some(x) => return best_candidate_against_corpus(candidates, x),
+        Some(x) => best_candidate_against_corpus(&candidates, x),
         None => {
             let local_corpus = build_corpus_from_file("_test_data/205-0.txt");
-            return best_candidate_against_corpus(candidates, &local_corpus);
+            best_candidate_against_corpus(&candidates, &local_corpus)
         }
-    };
+    }
 }
 
 fn build_candidate_list(input: &str) -> Vec<Box<str>> {
@@ -78,7 +78,7 @@ fn build_candidate_list(input: &str) -> Vec<Box<str>> {
         }
     }
 
-    return results;
+    results
 }
 
 fn build_corpus(input: &str) -> HashMap<char, f64> {
@@ -91,21 +91,21 @@ fn build_corpus(input: &str) -> HashMap<char, f64> {
         denominator += 1f64;
     }
     for value in output.values_mut() {
-        *value = *value / denominator
+        *value /= denominator
     }
-    return output;
+    output
 }
 
-fn best_candidate_against_corpus(candidates: Vec<Box<str>>, corpus: &HashMap<char, f64>) -> Option<String> {
-    if candidates.len() == 0 {
+fn best_candidate_against_corpus(candidates: &[Box<str>], corpus: &HashMap<char, f64>) -> Option<String> {
+    if candidates.is_empty() {
         return None;
     }
     let mut best_score = 0f64;
     let mut best_candidate = 0usize;
 
-    for i in 0..candidates.len() {
+    for (i, candidate) in candidates.iter().enumerate() {
         let mut score = 0f64;
-        candidates[i].chars().for_each(|candidate_char| {
+        candidate.chars().for_each(|candidate_char| {
             score += match corpus.get(&candidate_char) {
                 Some(x) => *x,
                 None => 0f64,
@@ -118,7 +118,7 @@ fn best_candidate_against_corpus(candidates: Vec<Box<str>>, corpus: &HashMap<cha
         }
     }
 
-    return Some(candidates[best_candidate].to_string());
+    Some(candidates[best_candidate].to_string())
 }
 
 fn build_corpus_from_file(input: &str) -> HashMap<char, f64> {
@@ -150,5 +150,5 @@ pub fn bruteforce_single_char_xor(file_path: &str) -> String {
         }
 
     }
-    return best_candidate_against_corpus(candidates, &corpus).unwrap_or_default();
+    best_candidate_against_corpus(&candidates, &corpus).unwrap_or_default()
 }
